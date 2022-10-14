@@ -3,7 +3,7 @@ import { evaluate, evaluateLater } from './evaluator'
 import { elementBoundEffect } from './reactivity'
 import Alpine from './alpine'
 
-let prefixAsString = 'x-'
+let prefixAsString = ''
 
 export function prefix(subject = '') {
     return prefixAsString + subject

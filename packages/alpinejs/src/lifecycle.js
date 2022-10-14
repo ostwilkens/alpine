@@ -1,5 +1,5 @@
 import { startObservingMutations, onAttributesAdded, onElAdded, onElRemoved, cleanupAttributes } from "./mutation"
-import { deferHandlingDirectives, directives } from "./directives"
+import { deferHandlingDirectives, directives, prefix } from "./directives"
 import { dispatch } from './utils/dispatch'
 import { nextTick } from "./nextTick"
 import { walk } from "./utils/walk"
@@ -72,7 +72,22 @@ export function isRoot(el) {
 export function initTree(el, walker = walk) {
     deferHandlingDirectives(() => {
         walker(el, (el, skip) => {
+
+            // the order of these operations seem important, i don't know why
+
+            // replace ${text} in textContent
+            if (el.textContent.match(/\${([^}]+)}/g)) {
+                el.setAttribute(prefix("text"), `\`${el.textContent}\``)
+            }
+
             directives(el, el.attributes).forEach(handle => handle())
+
+            // default 'for' attribute on templates
+            if (el.nodeName === "TEMPLATE" && !el.hasAttribute(prefix("for"))) {
+                if (el.parentNode && (el.parentNode.hasAttribute(prefix("src")) || el.parentNode.hasAttribute(prefix("data")))) {
+                    el.setAttribute(prefix("for"), "_item in $data._items")
+                }
+            }
 
             el._x_ignore && skip()
         })

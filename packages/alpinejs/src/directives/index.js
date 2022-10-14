@@ -19,6 +19,7 @@ import './x-ref'
 import './x-if'
 import './x-id'
 import './x-on'
+import './x-src'
 
 // Register warnings for people using plugin syntaxes and not loading the plugin itself:
 warnMissingPluginDirective('Collapse', 'collapse', 'collapse')

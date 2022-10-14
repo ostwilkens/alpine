@@ -48,11 +48,24 @@ export function mergeProxies(objects) {
         },
 
         has: (target, name) => {
-            return objects.some(obj => obj.hasOwnProperty(name))
+            const hasOwnProperty = objects.some(obj => obj.hasOwnProperty(name))
+
+            // if this proxy doesn't have the property, look for it on ._item
+            if (!hasOwnProperty) {
+                const objectsWithItem = objects.filter(obj => obj.hasOwnProperty("_item"))
+
+                const hasItemWithProperty = objectsWithItem.some(obj => obj._item.hasOwnProperty(name))
+                if (hasItemWithProperty) {
+                    return true
+                }
+            }
+
+            return hasOwnProperty
         },
 
         get: (target, name) => {
-            return (objects.find(obj => {
+
+            const thisResult = (objects.find(obj => {
                 if (obj.hasOwnProperty(name)) {
                     let descriptor = Object.getOwnPropertyDescriptor(obj, name)
 
@@ -86,6 +99,23 @@ export function mergeProxies(objects) {
 
                 return false
             }) || {})[name]
+
+            if (thisResult) {
+                return thisResult
+            } else {
+                // if there's no hit, look if there's an ._item with this field
+                const objectsWithItem = objects.filter(obj => obj.hasOwnProperty("_item"))
+                if (objectsWithItem.length > 0) {
+                    const itemWithProperty = objectsWithItem.find(obj => obj._item.hasOwnProperty(name))
+
+                    if (itemWithProperty) {
+                        return itemWithProperty._item[name]
+                    }
+                }
+                
+                // still no hit
+                return undefined
+            }
         },
 
         set: (target, name, value) => {

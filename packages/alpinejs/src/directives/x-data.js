@@ -11,7 +11,14 @@ import { evaluate } from '../evaluator'
 addRootSelector(() => `[${prefix('data')}]`)
 
 directive('data', skipDuringClone((el, { expression }, { cleanup }) => {
-    expression = expression === '' ? '{}' : expression
+
+    // add _items to default data, so src attribute can use it
+    expression = expression === '' ? '{ _items: [] }' : expression
+
+    // if data looks like an array, wrap it in { _items: }
+    expression = expression[0] === '[' && expression[expression.length-1] === ']' ? 
+        expression = `{ _items: ${expression} }` : 
+        expression
 
     let magicContext = {}
     injectMagics(magicContext, el)
